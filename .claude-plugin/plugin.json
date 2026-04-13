@@ -1,0 +1,8 @@
+{
+    "name": "kssbox",
+    "description": "从 idea 到开发的全链路工具集：idea-to-product → idea-to-prd → harness-sync",
+    "version": "1.0.0",
+    "author": {
+        "name": "kssbox"
+    }
+}
