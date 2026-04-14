@@ -1,6 +1,6 @@
 # GTM 推广渠道手册
 
-适用于：idea-to-product skill 的推广章节。根据产品类型选取适合的渠道组合。
+适用于：product-strategy skill 的推广章节。根据产品类型选取适合的渠道组合。
 
 ---
 

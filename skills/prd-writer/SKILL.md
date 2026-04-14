@@ -1,9 +1,9 @@
 ---
-name: idea-to-prd
+name: prd-writer
 description: 将任意形式的产品描述或规划文档转化为可直接用于开发的完整 PRD（产品需求文档）。输入可以是任意格式的产品文档、需求描述或零散说明，输出是包含用户故事、功能规格、数据模型、API 设计、页面流程、验收标准的标准 PRD。当用户说"帮我生成 PRD"、"把规划文档转成需求文档"、"我要开始开发了"、"帮我写开发文档"、"我需要一个 PRD"时，必须使用本 skill。
 ---
 
-# idea-to-prd Skill
+# prd-writer Skill
 
 ## 前提检查
 
