@@ -1,0 +1,9 @@
+{
+    "name": "kssbox",
+    "version": "1.0.0",
+    "description": "从 idea 到开发的全链路工具集：product-strategy → prd-writer → harness-sync",
+    "bin": {
+        "kssbox": "./bin/kssbox"
+    },
+    "author": "kssbox"
+}
