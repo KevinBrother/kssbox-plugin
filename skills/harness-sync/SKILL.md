@@ -51,10 +51,7 @@ Harness 不是一次性初始化，是随项目持续演进的活系统。
         └── ci.yml                 ← CI pipeline（含所有门禁）
 ```
 
-依赖规则配置文件（按技术栈选一个）：
-- JS/TS 项目：`.dependency-cruiser.cjs`
-- Python 项目：`pyproject.toml`（依赖规则写在 `[tool.importlinter]` 节）
-- 其他：`docs/dependency-rules.md`（文字描述，人工 + CI 脚本执行）
+依赖规则配置文件：根据项目已有技术栈放置对应位置，路径写入 `docs/architecture.md` 说明。
 
 ---
 
