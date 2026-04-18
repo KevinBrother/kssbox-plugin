@@ -1,17 +1,18 @@
-# 镜像源与环境变量契约
+# 镜像源与 app env 契约
 
 ## 目标
 
-为 `dev` 和 `deploy` 阶段提供一套统一、可覆盖的镜像源环境变量契约，让本地开发脚本和 Docker 构建读取同一份源配置。
+为 `dev` 和 `deploy` 阶段提供一套统一、可覆盖的镜像源变量约定，同时把环境变量模型收敛为 app 自治模式，而不是中心化 env 聚合文件。
 
 ## 设计原则
 
 - 不把国内源写死成不可覆盖常量
-- 本地脚本和 Docker build 使用同一套变量
+- 本地脚本和 Docker build 使用同一套镜像源变量命名
 - 优先通过环境变量注入，而不是把源写进脚本逻辑
 - 云厂商内网源允许覆盖默认值
+- app 自己维护运行时 env 模板，不由仓库根目录统一代管
 
-## 推荐变量
+## 推荐镜像变量
 
 - `NPM_REGISTRY`
 - `PNPM_REGISTRY`
@@ -23,23 +24,40 @@
 
 如果目标项目使用其他生态，可以扩展变量，但命名和职责必须清晰。
 
-## 文件落点
+## app env 目标形态
 
-至少应体现到以下文件：
+每个 app 至少应具备：
 
-- `.env.example`
-- `docker/deploy.env.example`
+- `<app>/.env.dev.example`
+- `<app>/.env.prod.example`
+- `<app>/.env.local.example`
 
 要求说明：
 
-- 哪些变量用于本地开发
-- 哪些变量用于 Docker 构建与部署
-- 哪些变量是“可覆盖默认值”
+- `.env.dev.example` 用于本地开发默认值
+- `.env.prod.example` 用于部署环境契约说明
+- `.env.local.example` 用于本地私有覆盖示例
+
+真实运行时文件处理规则：
+
+- `.env.dev`、`.env.prod`、`.env.local` 由开发者或部署目标从 example copy 生成
+- 真实 `.env*` 不应提交到 git
+- `dev.sh` 和 `deploy.sh` 只负责根据运行模式选择正确的 app env
+
+## 治理规则
+
+在生成新 env 结构前，必须先处理旧 env 资产：
+
+- 根目录 `.env.example` 若承担单 app 模板职责，可 `migrate` 到对应 app
+- 多个旧 env 模板共同表达同一 app 的运行时配置时，可 `merge`
+- 已被 app 自治 env 完整覆盖的中心化模板，执行 `delete`
+- 无法判断归属的旧 env 模板，停止并追问用户
 
 ## dev 与 deploy 的共享规则
 
-- `scripts/dev.sh` 读取同一套镜像源变量
-- `scripts/deploy.sh` 与 Dockerfile 读取同一套镜像源变量
+- `scripts/dev.sh` 读取与当前 app 对应的 `.env.dev` / `.env.local`
+- `scripts/deploy.sh` 读取与当前 app 对应的 `.env.prod`
+- Dockerfile 与部署脚本使用同一套镜像源变量命名
 - Docker 构建参数不能和本地脚本使用不同变量名
 
 ## 云厂商默认值
@@ -70,6 +88,7 @@
 
 ## 禁止行为
 
+- 重新引入根目录统一 `.env.example` 作为所有 app 的唯一 env 入口
 - 把 `NPM_REGISTRY`、`PIP_INDEX_URL`、`GO_PROXY`、`APT_MIRROR`、`DOCKER_MIRROR` 写死成不可改
 - `dev` 与 `deploy` 使用不同命名的变量表达同一个源
 - 没问云厂商，就直接套某家云厂商默认值
