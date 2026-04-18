@@ -21,6 +21,7 @@
 - 脚本文件存在
 - 参数分支完整
 - 环境变量读取逻辑存在
+- `docker/deploy.env.example` 与 `.env.example` 的契约存在
 - 默认 `all` 行为存在
 
 ### 第二层：Dev 行为验证

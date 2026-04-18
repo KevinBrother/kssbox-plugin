@@ -45,6 +45,7 @@
 - 解析参数，空参默认 `all`
 - 校验 Docker 与 Compose 是否可用
 - 加载部署环境变量
+- 读取 `docker/deploy.env.example` 对应的变量契约
 - 触发 `docker compose build`
 - 触发 `docker compose up -d`
 - 输出本次构建和部署的服务集合
