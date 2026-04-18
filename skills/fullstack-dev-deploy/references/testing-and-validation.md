@@ -2,17 +2,19 @@
 
 ## 目标
 
-这个 skill 的交付标准不是“文件生成了”，而是“统一入口真实可用”。所有关键生成物都必须进入验证链路。
+这个 skill 的交付标准不是“文件生成了”，而是“治理后的统一入口真实可用，且旧资产已正确收敛”。所有关键生成物都必须进入验证链路。
 
 ## 验证目标
 
 1. `scripts/dev.sh` 参数解析正确
 2. `scripts/dev.sh` 对 `all|biz|boss` 的展开正确
 3. `scripts/dev.sh` 命中的启动命令正确
-4. `scripts/dev.sh` 能证明服务已经启动成功
+4. `scripts/dev.sh` 能证明 infra 和 app 已启动成功
 5. `scripts/deploy.sh` 参数解析正确
 6. `scripts/deploy.sh` 能在本机 Docker / Compose 环境下执行
-7. `docker/<app>/Dockerfile` 与 `docker/docker-compose.yml` 可工作
+7. `docker/infra.compose.yml` 与 `docker/app.compose.yml` 结构正确
+8. `docker/<app>/Dockerfile` 与双 compose 可工作
+9. 旧 dev / deploy / docker / env 资产已按治理动作收敛
 
 ## 测试分层
 
@@ -20,23 +22,33 @@
 
 - 脚本文件存在
 - 参数分支完整
-- 环境变量读取逻辑存在
-- `docker/deploy.env.example` 与 `.env.example` 的契约存在
+- env 选择逻辑存在
+- app 自治 env 契约存在
+- `docker/infra.compose.yml` 与 `docker/app.compose.yml` 同时存在
 - 默认 `all` 行为存在
 
-### 第二层：Dev 行为验证
+### 第二层：治理校验
+
+- 旧 `run.sh`、`start.sh`、旧 `dev.sh` 是否已被 keep / migrate / merge / delete
+- 旧 `deploy.sh`、旧 compose、旧 Dockerfile 是否已按规则收敛
+- 根目录中心化 env 模板是否已迁移、合并或删除
+- 最终保留资产是否与 `convergencePlan` 一致
+
+### 第三层：Dev 行为验证
 
 - 空参是否等价于 `all`
 - `biz` / `boss` 是否映射到正确 app 集合
+- 是否按需要联动 `docker/infra.compose.yml`
 - 启动命令是否命中目标 app
 - 是否有端口、health、ready 或 smoke 信号证明启动成功
 
 若目标仓库已有现成的 healthcheck、ready 或 smoke test，优先复用。
 
-### 第三层：Deploy 本机验证
+### 第四层：Deploy 本机验证
 
 - `docker/<app>/Dockerfile` 能成功构建
-- `docker/docker-compose.yml` 能按服务集合启动
+- `docker/app.compose.yml` 能按服务集合启动
+- 若 infra 由本仓库托管，`docker/infra.compose.yml` 能被正确联动
 - `scripts/deploy.sh` 能在本机 Docker 环境执行
 - 部署后必须至少有一个 readiness 信号：healthcheck、端口探测、容器健康状态或 smoke test
 
@@ -45,17 +57,22 @@
 - 第一次失败：修正生成物后重试
 - 第二次仍失败且原因不明：立即停止，向用户报告
 - 缺少 Docker / Compose 或测试前置条件：明确报错，不得伪造“验证通过”
+- 无法判断旧资产语义：停止，不得继续自动治理
 
 ## 必须验证的生成物
 
 - `scripts/dev.sh`
 - `scripts/deploy.sh`
-- `docker/docker-compose.yml`
+- `docker/infra.compose.yml`
+- `docker/app.compose.yml`
 - `docker/<app>/Dockerfile`
+- 各 app 的 `.env.dev.example`
+- 各 app 的 `.env.prod.example`
 
 ## 禁止行为
 
-- 只做静态检查，不做运行验证
-- `dev.sh` 启动后不确认服务是否真的可用
+- 只做静态检查，不做治理验证与运行验证
+- `dev.sh` 启动后不确认 infra 或 app 是否真的可用
 - `deploy.sh` 只跑 build，不验证部署结果
+- 没核对旧资产去向，就声称“已完成收敛”
 - 把“用户手动看起来正常”当作唯一验证依据
