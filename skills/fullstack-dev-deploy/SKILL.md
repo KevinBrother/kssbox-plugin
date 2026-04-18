@@ -107,9 +107,9 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 核心目标：
 
 - 生成或更新 `scripts/deploy.sh [service...]`
-- 在 `docker/` 目录下统一放置部署资产
-- 生成 `docker/infra.compose.yml`
-- 生成 `docker/app.compose.yml`
+- 在 `docker/` 目录下统一放置 infra / app 部署资产
+- 生成 `docker/infra.compose.yml` 作为基础设施编排入口
+- 生成 `docker/app.compose.yml` 作为业务服务编排入口
 - 为各 app 生成 `docker/<app>/Dockerfile`
 - 收敛旧 deploy / docker 资产到统一目标形态
 - 构建与部署必须完全在 Docker / Compose 内完成

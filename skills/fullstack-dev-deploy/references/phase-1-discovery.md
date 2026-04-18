@@ -53,7 +53,7 @@ assumptions
 - 部署脚本：`deploy.sh`、`release.sh`、`publish.sh`
 - Dockerfile：根目录或各 app 下已有 Dockerfile
 - Compose 文件：`docker-compose*.yml`、`compose*.yml`
-- env 文件：`.env*`、`*.env*`
+- env 文件：根级旧模板、app 内 `.env*`、其他 `*.env*`
 - Docker 安装与源配置脚本
 
 ## 资产盘点原则
