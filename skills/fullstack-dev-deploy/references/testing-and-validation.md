@@ -38,7 +38,7 @@
 - `docker/<app>/Dockerfile` 能成功构建
 - `docker/docker-compose.yml` 能按服务集合启动
 - `scripts/deploy.sh` 能在本机 Docker 环境执行
-- 若仓库已有 healthcheck / smoke test，纳入部署后验证
+- 部署后必须至少有一个 readiness 信号：healthcheck、端口探测、容器健康状态或 smoke test
 
 ## 失败处理
 

@@ -54,11 +54,12 @@ all  -> 全部 app
 
 ## 环境变量约定
 
-`scripts/dev.sh` 必须在启动前加载统一环境变量，例如：
+`scripts/dev.sh` 必须在启动前加载运行时环境变量，例如：
 
 - `.env`
 - `.env.local`
-- `.env.example` 中定义的镜像源和端口覆盖项
+
+`.env.example` 只用于声明契约和默认占位，不应被脚本直接当作运行时配置文件 source。
 
 环境变量契约本身以 `mirror-and-env-contract.md` 为准，这里只负责消费。
 

@@ -40,12 +40,14 @@
 4. 在 `docker/docker-compose.yml` 中统一编排服务
 5. 把部署环境变量集中放进 `docker/deploy.env.example`
 
+`docker/deploy.env.example` 是模板和契约文件，不应被 `deploy.sh` 直接当作生产运行时配置。
+
 ## deploy.sh 的最小职责
 
 - 解析参数，空参默认 `all`
 - 校验 Docker 与 Compose 是否可用
 - 加载部署环境变量
-- 读取 `docker/deploy.env.example` 对应的变量契约
+- 读取实际部署环境文件，并遵循 `docker/deploy.env.example` 定义的变量契约
 - 触发 `docker compose build`
 - 触发 `docker compose up -d`
 - 输出本次构建和部署的服务集合
