@@ -44,6 +44,35 @@
 - 真实 `.env*` 不应提交到 git
 - `dev.sh` 和 `deploy.sh` 只负责根据运行模式选择正确的 app env
 
+### 单 app 多运行面
+
+如果一个物理 app 目录同时承载多个真实服务名或运行面，例如同一个 `frontend/` 同时产出 `h5` 与 `weapp`：
+
+- 仍以 app 目录作为 env 归属边界
+- 先保留基础模板，例如 `frontend/.env.dev.example`、`frontend/.env.prod.example`、`frontend/.env.local.example`
+- 只有在不同运行面确实需要差异变量时，才追加 service overlay，例如 `frontend/.env.h5.dev.example`、`frontend/.env.weapp.prod.example`
+- service overlay 是补充层，不得替代 app 基础模板
+
+### 部署编排 env 契约
+
+只属于 Docker 构建、Compose 编排或部署目标选择的变量，可以单独收口到 `docker/` 下的 deploy env 契约，例如：
+
+- `docker/deploy.env.example`
+
+这类变量通常包括：
+
+- 部署目标主机
+- 对外暴露端口
+- 构建开关
+- compose profile 或发布批次参数
+
+约束如下：
+
+- deploy/orchestration env 不能替代 app 的 `.env.prod.example`
+- app 运行时变量仍应归属到 app 自治 env
+- `deploy.sh` 可以同时读取 deploy/orchestration env 和 app `.env.prod`
+- 如果某个变量既影响编排又影响 app 运行时，必须明确拆分职责，不能偷懒只保留在中心化 deploy env 中
+
 ## 治理规则
 
 在生成新 env 结构前，必须先处理旧 env 资产：
@@ -51,12 +80,14 @@
 - 根目录 `.env.example` 若承担单 app 模板职责，可 `migrate` 到对应 app
 - 多个旧 env 模板共同表达同一 app 的运行时配置时，可 `merge`
 - 已被 app 自治 env 完整覆盖的中心化模板，执行 `delete`
+- 旧 `docker/deploy.env*` 若承担部署编排职责，可保留为 `docker/deploy.env.example`；若混入 app 运行时变量，则必须拆分后再保留
 - 无法判断归属的旧 env 模板，停止并追问用户
 
 ## dev 与 deploy 的共享规则
 
 - `scripts/dev.sh` 读取与当前 app 对应的 `.env.dev` / `.env.local`
 - `scripts/deploy.sh` 读取与当前 app 对应的 `.env.prod`
+- 若存在 `docker/deploy.env`，仅用于部署编排或 Docker 构建层变量
 - Dockerfile 与部署脚本使用同一套镜像源变量命名
 - Docker 构建参数不能和本地脚本使用不同变量名
 
@@ -89,6 +120,7 @@
 ## 禁止行为
 
 - 重新引入根目录统一 `.env.example` 作为所有 app 的唯一 env 入口
+- 把 `docker/deploy.env.example` 当成所有 app 运行时变量的唯一来源
 - 把 `NPM_REGISTRY`、`PIP_INDEX_URL`、`GO_PROXY`、`APT_MIRROR`、`DOCKER_MIRROR` 写死成不可改
 - `dev` 与 `deploy` 使用不同命名的变量表达同一个源
 - 没问云厂商，就直接套某家云厂商默认值

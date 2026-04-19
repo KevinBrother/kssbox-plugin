@@ -81,6 +81,7 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 - 支持国内源、企业内网源、云厂商私有源
 - 先询问或识别云厂商，再给出可覆盖的默认值
 - 每个 app 自己维护 `.env.dev.example`、`.env.prod.example`、`.env.local.example`
+- 若存在只属于部署编排或 Docker 构建的变量，可单独收口到 `docker/` 下的 deploy env 契约，但不能替代 app 自治 env
 - 真实 `.env*` 由目标环境从 example copy 生成，且不入 git
 - 不把任何镜像源硬编码成唯一方案
 
@@ -150,6 +151,7 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 
 - Docker 安装脚本
 - 源配置辅助脚本
+- `docker/deploy.env.example`
 - 部署说明文档
 
 ---

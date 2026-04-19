@@ -68,6 +68,12 @@
 - `.env.dev`、`.env.local` 由开发者从 example copy 生成
 - 真实 `.env*` 不应提交到 git
 
+当一个 app 目录承载多个真实服务名时：
+
+- 先复用该 app 的基础 env，例如 `frontend/.env.dev.example`
+- 若不同运行面确实需要差异变量，可在同目录追加 service overlay，例如 `frontend/.env.h5.dev.example`、`frontend/.env.weapp.dev.example`
+- 不要为了匹配服务名而把一个物理 app 人工拆成多个假目录
+
 ## 复杂项目处理
 
 复杂项目允许内部映射为 app 级清单，例如：
@@ -110,3 +116,4 @@ groups.mobile    -> h5 + weapp
 - 为了统一入口而丢失已有 app 的关键启动参数
 - 继续依赖根级 `.env.example` 作为所有 app 的统一 env 入口
 - 把案例里的服务名或聚合组直接写死在脚本里，却不和 Discovery 结果同步
+- 一个 app 明明承载多个运行面，却在未记录映射关系时擅自复制多套 env 结构

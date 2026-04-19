@@ -18,6 +18,7 @@
 
 - Docker 安装脚本
 - 源配置辅助脚本
+- `docker/deploy.env.example`
 - 部署说明文档
 
 ## 统一入口约定
@@ -55,6 +56,7 @@
 6. 为每个 app 生成或修正 `docker/<app>/Dockerfile`
 7. 根据项目画像判断 infra 是否也由本仓库托管
 8. 若最终仍只有单 compose 或 Docker 资产未收敛到标准目标，则直接视为未完成
+9. 未经 Discovery 或用户确认，不得发明新的服务别名或聚合组，例如 `stack`
 
 ## 双 compose 规则
 
@@ -80,6 +82,7 @@
 - 解析参数，空参默认 `all`
 - 参数口径必须与 `scripts/dev.sh` 完全一致，并复用同一份服务映射
 - 校验 Docker 与 Compose 是否可用
+- 读取 deploy/orchestration 专用 env 契约（如 `docker/deploy.env`）以及对应 app 的 `.env.prod`
 - 根据服务集合选择 app compose 中的目标服务
 - 判断 infra 是否需要联动
 - 触发 `docker compose build`
@@ -119,6 +122,7 @@
 - 本次实际部署了哪些 app 服务
 - 本次使用了哪些真实服务名或聚合组参数
 - 是否联动了 `docker/infra.compose.yml`
+- 是否使用了 deploy/orchestration 专用 env 契约
 - 使用了哪些 Dockerfile
 - 哪些旧 deploy / docker 资产被 migrate / merge / delete
 - 执行了哪些 `docker compose build` / `docker compose up -d` 动作
@@ -130,4 +134,5 @@
 - 依赖宿主机语言运行时来完成构建
 - `scripts/deploy.sh` 和 `scripts/dev.sh` 使用不同的服务分组口径
 - 最终仍保留单个 `docker-compose.yml` 作为唯一标准部署资产
+- 在未确认的情况下发明 `stack`、`mobile` 等新别名并暴露给用户
 - 发现已有 Dockerfile 或旧 compose 不规范，就直接忽略而不是说明如何收敛

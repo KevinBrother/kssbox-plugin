@@ -13,7 +13,8 @@
 5. 现有资产：脚本、Dockerfile、Compose、env 文件、镜像源配置
 6. 真实服务名：目标项目实际暴露给用户的服务名，例如 `backend`、`h5`、`weapp`
 7. 可选聚合组：是否存在稳定的高层服务集合语义，例如 `all` 之外的 `admin`、`mobile`、`gateway`
-8. 基础设施依赖：MySQL、Redis、MQ、MinIO 等是否由本仓库托管
+8. 一个 app 目录是否承载多个运行面或多个对外服务，例如同一个 `frontend/` 同时产出 `h5` 与 `weapp`
+9. 基础设施依赖：MySQL、Redis、MQ、MinIO 等是否由本仓库托管
 
 ## 推荐扫描顺序
 
@@ -47,6 +48,12 @@ projectProfile{
 - `convergencePlan[]`：每个资产的 keep / migrate / merge / delete / generate 动作及原因
 - `toolchains`：语言生态、包管理器、构建依赖
 - `assumptions[]`：自动推断但尚未得到用户确认的部分
+
+补充约束：
+
+- `apps[]` 记录物理 app 边界，例如 `frontend`、`backend`
+- `serviceGroups` 记录对外暴露的真实服务名，例如 `h5`、`weapp`
+- 如果一个 app 目录承载多个运行面，必须在 Discovery 中显式记录“一个 app → 多个服务”的关系，后续阶段不得私自拆成多个假 app
 
 ## 资产盘点范围
 
@@ -96,6 +103,7 @@ projectProfile{
 - app 边界基本清楚，但命名不统一
 - 真实服务名可以从目录、脚本、端口或现有入口中高概率推断
 - 聚合组语义基本清楚，但仍存在单点不确定
+- 一个 app 目录承载多个运行面，但共享关系基本清楚
 - 旧脚本、旧 compose 或旧 env 的语义大致清楚，但仍存在单点不确定
 
 ### 3. 无法安全识别
@@ -106,6 +114,8 @@ projectProfile{
 - 找不到可靠的启动命令或构建命令
 - 无法确认真实服务名
 - 无法判断某个候选聚合组是否真的存在
+- 无法判断一个 app 目录是否承载多个运行面
+- 旧 `dev` / `deploy` 入口对 `all` 或共享分组的含义不一致
 - 无法判断某个旧脚本原本承担什么职责
 - 无法判断某个旧 compose 属于 infra 还是 app
 - 无法判断某个 env 文件属于哪个 app 或哪个环境
