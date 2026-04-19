@@ -65,7 +65,9 @@
 - 最终是否保留 `scripts/deploy.sh`
 - 是否形成 `docker/infra.compose.yml`
 - 是否形成 `docker/app.compose.yml`
-- 哪些 app 拥有自己的 `.env.dev.example` / `.env.prod.example` / `.env.local.example`
+- 是否形成 `docker/.env.example`
+- 运行时是否应复制为 `docker/.env`
+- env key 是否已统一为全大写蛇形命名
 
 ## 文件变更摘要
 
@@ -94,6 +96,7 @@
 - 哪些验证通过
 - 若有未执行的验证，是因为什么前置条件缺失
 - 若未能输出结构化摘要，是因为什么前置条件缺失
+- 缺失 env 时应执行哪条复制命令
 
 ## 禁止行为
 

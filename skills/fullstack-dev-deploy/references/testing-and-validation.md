@@ -22,16 +22,17 @@
 
 - 脚本文件存在
 - 参数分支完整
-- env 选择逻辑存在
-- app 自治 env 契约存在
+- `docker/.env.example` 存在
+- `scripts/dev.sh` 与 `scripts/deploy.sh` 都指向 `docker/.env`
 - `docker/infra.compose.yml` 与 `docker/app.compose.yml` 同时存在
 - 默认 `all` 行为存在
+- env key 命名符合全大写蛇形规范
 
 ### 第二层：治理校验
 
 - 旧 `run.sh`、`start.sh`、旧 `dev.sh` 是否已被 keep / migrate / merge / delete
 - 旧 `deploy.sh`、旧 compose、旧 Dockerfile 是否已按规则收敛
-- 根目录中心化 env 模板是否已迁移、合并或删除
+- 根目录 `.env*`、app 内 `.env*`、`docker/deploy.env*` 是否已迁移、合并或删除
 - 最终保留资产是否与 `convergencePlan` 一致
 
 ### 第三层：Dev 行为验证
@@ -39,8 +40,11 @@
 - 空参是否等价于 `all`
 - 真实服务名与已确认聚合组是否映射到正确 app 集合
 - 是否按需要联动 `docker/infra.compose.yml`
+- 缺失 `docker/.env` 时是否明确提示具体路径和复制命令
+- `docker/.env` 存在但关键变量缺失时是否明确列出变量名
 - 启动命令是否命中目标 app
 - 是否有端口、health、ready 或 smoke 信号证明启动成功
+- 提前退出时是否避免 `PIDS[@]: unbound variable`
 
 若目标仓库已有现成的 healthcheck、ready 或 smoke test，优先复用。
 
@@ -50,6 +54,7 @@
 - `docker/app.compose.yml` 能按服务集合启动
 - 若 infra 由本仓库托管，`docker/infra.compose.yml` 能被正确联动
 - `scripts/deploy.sh` 能在本机 Docker 环境执行
+- 缺失 `docker/.env` 时是否明确提示具体路径和复制命令
 - 部署后必须至少有一个 readiness 信号：healthcheck、端口探测、容器健康状态或 smoke test
 
 ## 失败处理
@@ -67,8 +72,7 @@
 - `docker/infra.compose.yml`
 - `docker/app.compose.yml`
 - `docker/<app>/Dockerfile`
-- 各 app 的 `.env.dev.example`
-- 各 app 的 `.env.prod.example`
+- `docker/.env.example`
 
 ## 禁止行为
 
@@ -78,3 +82,5 @@
 - 没核对旧资产去向，就声称“已完成收敛”
 - 把“用户手动看起来正常”当作唯一验证依据
 - 未列出真实服务名、聚合组、治理动作和验证结果，就声称“验证通过”
+- 缺失 `docker/.env` 时不提示路径和复制命令
+- 提前失败时仍出现 `PIDS[@]: unbound variable`
