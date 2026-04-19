@@ -2,7 +2,7 @@
 
 ## 目标
 
-把任意全栈仓库收敛成一份统一“项目画像”，并同时产出资产盘点与治理计划，供后续 `dev` 和 `deploy` 阶段共用。
+把任意全栈仓库收敛成一份统一 `projectProfile`，并同时产出资产盘点与治理计划，供后续 `dev`、`deploy`、验证和摘要阶段共用。
 
 ## 必须扫描的信息
 
@@ -11,39 +11,42 @@
 3. 包管理器：npm、pnpm、yarn、go mod、pip、poetry 等
 4. 启动命令、构建命令、默认端口、依赖关系
 5. 现有资产：脚本、Dockerfile、Compose、env 文件、镜像源配置
-6. 服务分组候选：哪些 app 可能属于 `biz`、`boss`
-7. 基础设施依赖：MySQL、Redis、MQ、MinIO 等是否由本仓库托管
+6. 真实服务名：目标项目实际暴露给用户的服务名，例如 `backend`、`h5`、`weapp`
+7. 可选聚合组：是否存在稳定的高层服务集合语义，例如 `all` 之外的 `admin`、`mobile`、`gateway`
+8. 基础设施依赖：MySQL、Redis、MQ、MinIO 等是否由本仓库托管
 
 ## 推荐扫描顺序
 
 1. 先看目录结构：`frontend/`、`backend/`、`apps/`、`services/`
 2. 再看 app 级配置：`package.json`、`go.mod`、`pyproject.toml`、`requirements.txt`
 3. 再看已有启动与部署资产：`scripts/`、`Dockerfile`、`docker-compose*.yml`、`compose*.yml`、`.env*`
-4. 最后看 README 或项目脚本中的命名线索，补齐命令和端口信息
+4. 最后看 README 或项目脚本中的命名线索，补齐命令、端口和对外服务名
 
 ## 输出格式
 
 Discovery 结束后，逻辑上必须形成如下结构：
 
 ```text
-apps[]
-serviceGroups{all,biz,boss}
-existingArtifacts
-assetInventory[]
-convergencePlan[]
-toolchains
-assumptions
+projectProfile{
+  apps[]
+  serviceGroups
+  existingArtifacts
+  assetInventory[]
+  convergencePlan[]
+  toolchains
+  assumptions[]
+}
 ```
 
 字段说明：
 
-- `apps[]`：每个 app 的名称、目录、类型、启动方式、构建方式、端口
-- `serviceGroups`：`all`、`biz`、`boss` 对应的 app 清单
+- `apps[]`：每个 app 的名称、目录、类型、启动方式、构建方式、端口、依赖
+- `serviceGroups`：至少包含 `all`；同时记录真实服务名；若存在稳定聚合语义，再追加聚合组
 - `existingArtifacts`：已有脚本、Dockerfile、Compose、env 文件
 - `assetInventory[]`：所有现有资产的清单、语义、归属和现状
 - `convergencePlan[]`：每个资产的 keep / migrate / merge / delete / generate 动作及原因
 - `toolchains`：语言生态、包管理器、构建依赖
-- `assumptions`：自动推断但尚未得到用户确认的部分
+- `assumptions[]`：自动推断但尚未得到用户确认的部分
 
 ## 资产盘点范围
 
@@ -61,7 +64,8 @@ assumptions
 - **不只看文件名**：必须结合内容和调用关系识别语义
 - **先识别，再治理**：未识别语义前，不得先删后看
 - **关注职责，不关注历史**：删除依据是职责已被标准资产完整吸收，而不是“文件很老”
-- **一个事实来源**：Discovery 产物是后续所有阶段的唯一输入，不允许各阶段私自改口径
+- **一个事实来源**：`projectProfile` 是后续所有阶段的唯一输入，不允许各阶段私自改口径
+- **案例名不能入侵项目画像**：案例中的 `frontend`、`backend`、`app1` 等示意名，不能直接替代真实项目服务名
 
 ## 治理动作模型
 
@@ -81,15 +85,17 @@ assumptions
 
 - app 边界清晰
 - 启动命令和构建命令可找到
-- `biz` / `boss` / `all` 分组可直接确认
+- `all` 与真实服务名可直接确认
+- 若存在聚合组，其证据来源一致
 - 现有资产的语义和归属可稳定判断
 
 ### 2. 可推断但有风险
 
-满足以下情况时允许继续，但必须记录到 `assumptions`：
+满足以下情况时允许继续，但必须记录到 `assumptions[]`：
 
 - app 边界基本清楚，但命名不统一
-- `biz` / `boss` 可以从目录、脚本或端口中高概率推断
+- 真实服务名可以从目录、脚本、端口或现有入口中高概率推断
+- 聚合组语义基本清楚，但仍存在单点不确定
 - 旧脚本、旧 compose 或旧 env 的语义大致清楚，但仍存在单点不确定
 
 ### 3. 无法安全识别
@@ -98,14 +104,15 @@ assumptions
 
 - 无法确定哪些目录是独立 app
 - 找不到可靠的启动命令或构建命令
-- 无法判断 `biz`、`boss` 分组
+- 无法确认真实服务名
+- 无法判断某个候选聚合组是否真的存在
 - 无法判断某个旧脚本原本承担什么职责
 - 无法判断某个旧 compose 属于 infra 还是 app
 - 无法判断某个 env 文件属于哪个 app 或哪个环境
 
 ## 禁止行为
 
-- 看到目录名像业务模块，就直接当成 `biz` 或 `boss`
+- 看到案例里的名字，就直接当成目标项目服务名
 - 只凭 README 描述，不交叉验证实际脚本和配置
-- Discovery 和 Dev / Deploy 使用不同的 app 名称
+- Discovery 和 Dev / Deploy 使用不同的 app 名称或服务映射
 - 对关键字段或旧资产语义识别失败时继续生成结果
