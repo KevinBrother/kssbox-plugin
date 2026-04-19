@@ -75,7 +75,7 @@
 
 - 根目录 `.env*` 若承担项目运行时配置，迁移到 `docker/.env.example`
 - app 内 `.env*` 若表达的是项目运行时配置，合并后收敛到 `docker/.env.example`
-- `docker/deploy.env*` 的变量也必须并入 `docker/.env.example`
+- legacy deploy env 文件中的变量也必须并入 `docker/.env.example`
 - 已被单一 env 契约完整覆盖的旧 env 文件，执行 `delete`
 - 无法判断归属或同名变量互相冲突时，停止并追问用户
 
@@ -124,7 +124,7 @@
 ## 禁止行为
 
 - 重新引入 `.env.dev`、`.env.prod`、`.env.local` 或 app 内 `.env*` 作为主契约
-- 继续保留 `docker/deploy.env.example` 作为独立主契约
+- 继续保留 legacy deploy env 文件作为独立主契约
 - 把 `NPM_REGISTRY`、`PIP_INDEX_URL`、`GO_PROXY`、`APT_MIRROR`、`DOCKER_MIRROR` 写死成不可改
 - `dev` 与 `deploy` 使用不同命名的变量表达同一个源
 - 没问云厂商，就直接套某家云厂商默认值

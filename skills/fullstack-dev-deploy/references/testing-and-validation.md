@@ -32,7 +32,7 @@
 
 - 旧 `run.sh`、`start.sh`、旧 `dev.sh` 是否已被 keep / migrate / merge / delete
 - 旧 `deploy.sh`、旧 compose、旧 Dockerfile 是否已按规则收敛
-- 根目录 `.env*`、app 内 `.env*`、`docker/deploy.env*` 是否已迁移、合并或删除
+- 各类 legacy 多 env 资产是否已迁移、合并或删除
 - 最终保留资产是否与 `convergencePlan` 一致
 
 ### 第三层：Dev 行为验证

@@ -48,7 +48,7 @@
 - 旧 `deploy.sh`、`release.sh`、`publish.sh` 若语义正确但路径不规范，执行 `migrate`
 - 多个旧 compose 文件共同承担部署职责时，执行 `merge`
 - 旧 Dockerfile 若语义正确但路径混乱，迁移到 `docker/<app>/Dockerfile`
-- 旧 `.env*`、app 内 `.env*`、`docker/deploy.env*` 必须收敛到 `docker/.env.example`
+- 旧的分散 env 资产必须统一收敛到 `docker/.env.example`
 - 已被双 compose、统一入口和单一 env 完整覆盖的旧资产，执行 `delete`
 - 无法判断语义或归属的旧 deploy / docker / env 资产，停止并追问用户
 
@@ -112,7 +112,7 @@
 - `docker/.env` 是唯一运行时 env
 - Compose、Docker build、`scripts/deploy.sh` 全部围绕 `docker/.env` 工作
 - 自动生成的 env key 必须使用全大写蛇形命名
-- 不再生成或依赖 `docker/deploy.env*`、`.env.prod` 或其他多环境 env 文件
+- 不再生成或依赖任何分散的多环境 env 文件
 
 ## Docker 化原则
 
@@ -160,6 +160,6 @@
 - 依赖宿主机语言运行时来完成构建
 - `scripts/deploy.sh` 和 `scripts/dev.sh` 使用不同的服务分组口径
 - 最终仍保留单个 `docker-compose.yml` 作为唯一标准部署资产
-- 继续生成或依赖 `docker/deploy.env*`、`.env.prod` 或其他多环境 env 文件
+- 继续生成或依赖任何分散的多环境 env 文件
 - 在未确认的情况下发明 `stack`、`mobile` 等新别名并暴露给用户
 - 发现已有 Dockerfile 或旧 compose 不规范，就直接忽略而不是说明如何收敛
