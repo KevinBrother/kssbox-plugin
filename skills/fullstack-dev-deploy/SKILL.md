@@ -1,6 +1,6 @@
 ---
 name: fullstack-dev-deploy
-description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy 资产，自动识别现有脚本、Dockerfile、compose、env，按规则执行 keep / migrate / merge / delete / generate，最终收敛为 `scripts/dev.sh`、`scripts/deploy.sh`、双 compose 和 app 自治 env。当用户说"给项目加 dev 脚本"、"做 docker deploy"、"统一本地启动和部署"、"生成 dev.sh 和 deploy.sh"、"治理旧脚本和旧 docker 资产"时，必须使用本 skill。
+description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy 资产，自动识别现有脚本、Dockerfile、compose、env，按规则执行 keep / migrate / merge / delete / generate，最终收敛为 `scripts/dev.sh`、`scripts/deploy.sh`、双 compose 与 `docker/.env.example -> docker/.env` 单一 env 契约。当用户说"给项目加 dev 脚本"、"做 docker deploy"、"统一本地启动和部署"、"生成 dev.sh 和 deploy.sh"、"治理旧脚本和旧 docker 资产"时，必须使用本 skill。
 ---
 
 # fullstack-dev-deploy Skill
@@ -37,7 +37,7 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 
 **在每个阶段开始前，先读对应的 reference 文件，再执行。**
 **阶段五不可跳过，生成物不验证、不输出摘要，不算完成。**
-**若最终没有形成 `scripts/dev.sh`、`scripts/deploy.sh`、`docker/infra.compose.yml`、`docker/app.compose.yml` 与 app 自治 env，则视为未完成。**
+**若最终没有形成 `scripts/dev.sh`、`scripts/deploy.sh`、`docker/infra.compose.yml`、`docker/app.compose.yml` 与 `docker/.env.example -> docker/.env` 单一 env 契约，则视为未完成。**
 
 ---
 
@@ -80,9 +80,10 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 - 统一本地开发和 Docker 构建共享的镜像源变量契约
 - 支持国内源、企业内网源、云厂商私有源
 - 先询问或识别云厂商，再给出可覆盖的默认值
-- 每个 app 自己维护 `.env.dev.example`、`.env.prod.example`、`.env.local.example`
-- 若存在只属于部署编排或 Docker 构建的变量，可单独收口到 `docker/` 下的 deploy env 契约，但不能替代 app 自治 env
-- 真实 `.env*` 由目标环境从 example copy 生成，且不入 git
+- 统一生成项目级的 `docker/.env.example`
+- 运行时统一通过 `cp docker/.env.example docker/.env` 生成实际 env 文件，且不入 git
+- `scripts/dev.sh`、`scripts/deploy.sh`、Compose 与 Docker build 全部围绕 `docker/.env` 工作
+- 自动生成的 env key 必须使用全大写蛇形命名
 - 不把任何镜像源硬编码成唯一方案
 
 ---
@@ -97,7 +98,7 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 - 统一 `all`、真实服务名与可选聚合组的参数行为
 - 迁移、重命名或删除旧的 dev 入口资产
 - 对复杂项目允许内部展开到 app 级映射
-- 在脚本中按 app 加载运行时环境
+- 在脚本中统一加载 `docker/.env`
 - 若项目依赖基础设施，优先联动 `docker/infra.compose.yml`
 - 生成后必须验证目标服务确实已经启动成功
 
@@ -143,15 +144,12 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 - `docker/infra.compose.yml`
 - `docker/app.compose.yml`
 - `docker/<app>/Dockerfile`
-- `<app>/.env.dev.example`
-- `<app>/.env.prod.example`
-- `<app>/.env.local.example`
+- `docker/.env.example`
 
 必要时可补充：
 
 - Docker 安装脚本
 - 源配置辅助脚本
-- `docker/deploy.env.example`
 - 部署说明文档
 
 ---
@@ -164,7 +162,8 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 - [ ] Discovery 明确产出 `assetInventory` 与 `convergencePlan`
 - [ ] `scripts/dev.sh` 与 `scripts/deploy.sh` 都支持默认 `all`，并优先接受真实服务名
 - [ ] Docker 相关资产统一收口为 `docker/infra.compose.yml`、`docker/app.compose.yml` 与 `docker/<app>/Dockerfile`
-- [ ] env 资产已统一收口为 app 自治的 `.env.dev.example`、`.env.prod.example`、`.env.local.example`
+- [ ] env 资产已统一收口为 `docker/.env.example`，运行时统一复制为 `docker/.env`
+- [ ] 自动生成的 env key 全部使用全大写蛇形命名
 - [ ] 云厂商默认值先确认再写入，且始终允许覆盖
 - [ ] 最终输出包含识别结果、假设项、生成文件、keep/migrate/merge/delete/generate 治理动作和验证摘要
 - [ ] 职责已被吸收的旧资产已完成清理，或在摘要中说明未清理原因
