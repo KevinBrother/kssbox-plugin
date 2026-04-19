@@ -31,9 +31,9 @@
 行为要求：
 
 - 不传参数时默认 `all`
-- `./scripts/deploy.sh biz`：部署 `biz` 对应服务集合
-- `./scripts/deploy.sh boss`：部署 `boss` 对应服务集合
-- `./scripts/deploy.sh biz boss`：部署多个服务集合
+- `./scripts/deploy.sh backend`：部署 `backend` 对应服务集合
+- `./scripts/deploy.sh h5 weapp`：部署多个真实服务
+- 若 Discovery 或用户确认了聚合组，可额外支持 `./scripts/deploy.sh mobile` 这类高层服务集合
 
 ## 治理规则
 
@@ -48,12 +48,13 @@
 ## 生成规则
 
 1. 复用 Discovery 产出的 `serviceGroups`
-2. 把 `all`、`biz`、`boss` 映射为具体服务集合
+2. 把 `all`、真实服务名与可选聚合组映射为具体服务集合
 3. 判断现有 compose 与 Dockerfile 属于 infra 还是 app
 4. 将基础设施收敛到 `docker/infra.compose.yml`
 5. 将业务服务收敛到 `docker/app.compose.yml`
 6. 为每个 app 生成或修正 `docker/<app>/Dockerfile`
 7. 根据项目画像判断 infra 是否也由本仓库托管
+8. 若最终仍只有单 compose 或 Docker 资产未收敛到标准目标，则直接视为未完成
 
 ## 双 compose 规则
 
@@ -77,6 +78,7 @@
 ## deploy.sh 的最小职责
 
 - 解析参数，空参默认 `all`
+- 参数口径必须与 `scripts/dev.sh` 完全一致，并复用同一份服务映射
 - 校验 Docker 与 Compose 是否可用
 - 根据服务集合选择 app compose 中的目标服务
 - 判断 infra 是否需要联动
@@ -115,6 +117,7 @@
 执行 `deploy.sh` 后，日志中必须清楚说明：
 
 - 本次实际部署了哪些 app 服务
+- 本次使用了哪些真实服务名或聚合组参数
 - 是否联动了 `docker/infra.compose.yml`
 - 使用了哪些 Dockerfile
 - 哪些旧 deploy / docker 资产被 migrate / merge / delete
@@ -126,4 +129,5 @@
 - 把 infra 和 app 全部揉进一个唯一 compose 文件
 - 依赖宿主机语言运行时来完成构建
 - `scripts/deploy.sh` 和 `scripts/dev.sh` 使用不同的服务分组口径
+- 最终仍保留单个 `docker-compose.yml` 作为唯一标准部署资产
 - 发现已有 Dockerfile 或旧 compose 不规范，就直接忽略而不是说明如何收敛

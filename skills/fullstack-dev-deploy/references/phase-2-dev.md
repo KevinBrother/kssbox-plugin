@@ -22,9 +22,9 @@
 行为要求：
 
 - 不传参数时默认 `all`
-- `./scripts/dev.sh biz`：启动 `biz` 对应的前后端集合
-- `./scripts/dev.sh boss`：启动 `boss` 对应的前后端集合
-- `./scripts/dev.sh biz boss`：同时启动多个服务集合
+- `./scripts/dev.sh backend`：启动 `backend` 对应的服务集合
+- `./scripts/dev.sh h5 weapp`：同时启动多个真实服务
+- 若 Discovery 或用户确认了聚合组，可额外支持 `./scripts/dev.sh mobile` 这类高层服务集合
 
 ## 治理规则
 
@@ -38,19 +38,21 @@
 ## 生成规则
 
 1. 先复用 Discovery 产出的 `serviceGroups`
-2. 把 `all`、`biz`、`boss` 展开为具体 app 清单
+2. 把 `all`、真实服务名与可选聚合组展开为具体 app 清单
 3. 判断每个 app 所依赖的基础设施
 4. 若 infra 缺失，优先联动 `docker/infra.compose.yml`
 5. 为每个 app 选择正确的启动命令
-6. 对复杂项目允许内部按 app 级执行，但外部接口保持不变
+6. 对复杂项目允许内部按 app 级执行，但外部接口应优先保持真实服务名
 7. 启动前按 app 加载运行时环境变量
+8. 若最终仍依赖中心化 env 或无法落成 app 自治 env，则直接视为未完成
 
 ## 参数解析要求
 
-- 必须显式处理 `all`、`biz`、`boss`
+- 必须显式处理 `all`、真实服务名与已确认的聚合组
 - 空参必须等价于 `all`
 - 重复参数要去重
 - 非法参数不能静默忽略，必须明确报错
+- `dev.sh` 与 `deploy.sh` 必须共用同一份服务映射口径
 
 ## app 自治 env
 
@@ -71,12 +73,14 @@
 复杂项目允许内部映射为 app 级清单，例如：
 
 ```text
-biz  -> frontend-biz + backend-biz
-boss -> frontend-boss + backend-boss
-all  -> 全部 app
+all             -> backend + h5 + weapp
+services.backend -> backend
+services.h5      -> h5
+services.weapp   -> weapp
+groups.mobile    -> h5 + weapp
 ```
 
-如果只有前端或只有后端能识别出来，不要自己补全另一侧，必须停下追问用户。
+如果只有前端或只有后端能识别出来，不要自己补全另一侧；如果真实服务名或聚合组不能稳定确认，必须停下追问用户。
 
 ## 启动成功验证
 
@@ -92,6 +96,7 @@ all  -> 全部 app
 执行 `dev.sh` 后，日志中必须清楚说明：
 
 - 本次实际展开了哪些 app
+- 本次使用了哪些真实服务名或聚合组参数
 - 哪些旧 dev 资产被 migrate / merge / delete
 - 是否联动了 `docker/infra.compose.yml`
 - 每个 app 使用了什么启动命令
@@ -104,4 +109,4 @@ all  -> 全部 app
 - 遇到未知参数时默认按 `all` 执行
 - 为了统一入口而丢失已有 app 的关键启动参数
 - 继续依赖根级 `.env.example` 作为所有 app 的统一 env 入口
-- 把 `biz`、`boss` 直接写死在脚本里，却不和 Discovery 结果同步
+- 把案例里的服务名或聚合组直接写死在脚本里，却不和 Discovery 结果同步
