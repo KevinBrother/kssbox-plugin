@@ -15,8 +15,9 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 默认约定：
 
 - 不传参数时默认 `all`
-- 传 `biz`、`boss` 时，表示操作对应服务集合
-- 对复杂项目，`biz`、`boss` 是用户层别名，内部可展开为具体 app 清单
+- 运行时参数优先使用目标项目中真实存在的服务名，例如 `backend`、`h5`、`weapp`、`admin-web`、`gateway`
+- 若仓库中还存在更高层服务集合语义，可在识别或确认后额外生成聚合组；案例中的名字只用于示范，不能直接照搬到真实项目
+- skill 的主案例应先覆盖“单前端 + 单后端”，扩展示例再覆盖“多前端 + 多服务端”
 - 所有构建在 Docker 内完成，不依赖宿主机已有 Go、Node、Python 等运行时
 - 若项目已有旧的 dev/docker/deploy/env 资产，默认按规则自动收敛，而不是长期并存
 
@@ -36,6 +37,7 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 
 **在每个阶段开始前，先读对应的 reference 文件，再执行。**
 **阶段五不可跳过，生成物不验证、不输出摘要，不算完成。**
+**若最终没有形成 `scripts/dev.sh`、`scripts/deploy.sh`、`docker/infra.compose.yml`、`docker/app.compose.yml` 与 app 自治 env，则视为未完成。**
 
 ---
 
@@ -61,11 +63,11 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 
 - 扫描 frontend / backend app、语言生态、包管理器、构建和启动命令
 - 识别已有脚本、Dockerfile、Compose、env 文件
-- 把 `all`、`biz`、`boss` 映射为具体 app 集合
+- 形成至少包含 `all` 与真实服务名的服务映射；若存在稳定聚合语义，再追加聚合组
 - 形成统一“项目画像”，供后续 Dev 和 Deploy 阶段共用
 - 形成 `assetInventory` 与 `convergencePlan`，用于治理现有资产
 
-**如果无法可靠识别 app 分组、旧资产语义或 env 归属，必须停下追问用户。**
+**如果无法可靠识别真实服务名、app 分组、旧资产语义或 env 归属，必须停下追问用户。**
 
 ---
 
@@ -91,7 +93,7 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 核心目标：
 
 - 为目标项目生成或更新 `scripts/dev.sh [service...]`
-- 统一 `all` / `biz` / `boss` 的参数行为
+- 统一 `all`、真实服务名与可选聚合组的参数行为
 - 迁移、重命名或删除旧的 dev 入口资产
 - 对复杂项目允许内部展开到 app 级映射
 - 在脚本中按 app 加载运行时环境
@@ -158,8 +160,9 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 
 - [ ] Discovery、Dev、Deploy 三阶段共用同一份项目画像，没有重复扫描导致的规则漂移
 - [ ] Discovery 明确产出 `assetInventory` 与 `convergencePlan`
-- [ ] `scripts/dev.sh` 与 `scripts/deploy.sh` 都支持默认 `all`
+- [ ] `scripts/dev.sh` 与 `scripts/deploy.sh` 都支持默认 `all`，并优先接受真实服务名
 - [ ] Docker 相关资产统一收口为 `docker/infra.compose.yml`、`docker/app.compose.yml` 与 `docker/<app>/Dockerfile`
+- [ ] env 资产已统一收口为 app 自治的 `.env.dev.example`、`.env.prod.example`、`.env.local.example`
 - [ ] 云厂商默认值先确认再写入，且始终允许覆盖
 - [ ] 最终输出包含识别结果、假设项、生成文件、keep/migrate/merge/delete/generate 治理动作和验证摘要
 - [ ] 职责已被吸收的旧资产已完成清理，或在摘要中说明未清理原因
@@ -172,7 +175,7 @@ description: 为任意全栈工程生成并治理统一的 dev 和 docker deploy
 |------|--------|
 | 仓库结构不是 `frontend/*` + `backend/*` | 继续扫描，只要能稳定识别 app 即可 |
 | 已有 `run.sh`、`start.sh` 或旧 deploy 脚本 | 不直接保留旧入口，统一收敛到 `dev.sh` / `deploy.sh`，并清理冗余文件 |
-| 识别到多个可能的 `biz` / `boss` 分组 | 列出候选映射，向用户确认后再继续 |
+| 识别到多个可能的聚合组或服务映射 | 列出候选映射，向用户确认后再继续 |
 | 识别到多个 compose 文件 | 先判断属于 infra 还是 app，再收敛到双 compose |
 | 识别到根级或散落 env 文件 | 先判断归属 app 和环境，再迁移或删除 |
 | 宿主机未安装 Docker / Compose | 记录缺失并根据 reference 生成安装或引导步骤 |
