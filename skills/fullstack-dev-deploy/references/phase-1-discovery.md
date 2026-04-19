@@ -63,7 +63,7 @@ projectProfile{
 - 部署脚本：`deploy.sh`、`release.sh`、`publish.sh`
 - Dockerfile：根目录或各 app 下已有 Dockerfile
 - Compose 文件：`docker-compose*.yml`、`compose*.yml`
-- env 文件：根级旧模板、app 内 `.env*`、其他 `*.env*`
+- env 文件：根级旧模板、app 内 `.env*`、`docker/deploy.env*`、其他 `*.env*`
 - Docker 安装与源配置脚本
 
 ## 资产盘点原则
@@ -83,6 +83,20 @@ projectProfile{
 - `merge`：多个旧资产共同承担未来一个标准资产的职责，需要合并收敛
 - `delete`：已被标准资产完整覆盖，继续保留只会制造歧义
 - `generate`：标准资产缺失，需要新建
+
+## env 收敛目标
+
+env 相关资产的默认目标形态必须统一为：
+
+- `docker/.env.example`
+- `docker/.env`
+
+Discovery 结束时，`convergencePlan` 必须明确：
+
+- 哪些旧 env 文件将迁移到 `docker/.env.example`
+- 哪些旧 env 文件将被合并后再写入 `docker/.env.example`
+- 哪些旧 env 文件将被删除
+- 哪些 env key 会被标准化为全大写蛇形命名
 
 ## 分流规则
 
@@ -118,7 +132,7 @@ projectProfile{
 - 旧 `dev` / `deploy` 入口对 `all` 或共享分组的含义不一致
 - 无法判断某个旧脚本原本承担什么职责
 - 无法判断某个旧 compose 属于 infra 还是 app
-- 无法判断某个 env 文件属于哪个 app 或哪个环境
+- 无法判断某个 env 文件是否应收敛到 `docker/.env.example`
 
 ## 禁止行为
 

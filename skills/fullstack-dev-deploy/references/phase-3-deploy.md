@@ -7,18 +7,23 @@
 - `docker/infra.compose.yml`
 - `docker/app.compose.yml`
 
+同时，部署与构建阶段的全部运行时变量统一收敛到：
+
+- `docker/.env.example`
+- `docker/.env`
+
 ## 必须输出的资产
 
 - `scripts/deploy.sh`
 - `docker/infra.compose.yml`
 - `docker/app.compose.yml`
 - `docker/<app>/Dockerfile`
+- `docker/.env.example`
 
 必要时可补充：
 
 - Docker 安装脚本
 - 源配置辅助脚本
-- `docker/deploy.env.example`
 - 部署说明文档
 
 ## 统一入口约定
@@ -43,8 +48,9 @@
 - 旧 `deploy.sh`、`release.sh`、`publish.sh` 若语义正确但路径不规范，执行 `migrate`
 - 多个旧 compose 文件共同承担部署职责时，执行 `merge`
 - 旧 Dockerfile 若语义正确但路径混乱，迁移到 `docker/<app>/Dockerfile`
-- 已被双 compose 和统一入口完整覆盖的旧资产，执行 `delete`
-- 无法判断语义或归属的旧 deploy / docker 资产，停止并追问用户
+- 旧的分散 env 资产必须统一收敛到 `docker/.env.example`
+- 已被双 compose、统一入口和单一 env 完整覆盖的旧资产，执行 `delete`
+- 无法判断语义或归属的旧 deploy / docker / env 资产，停止并追问用户
 
 ## 生成规则
 
@@ -55,8 +61,9 @@
 5. 将业务服务收敛到 `docker/app.compose.yml`
 6. 为每个 app 生成或修正 `docker/<app>/Dockerfile`
 7. 根据项目画像判断 infra 是否也由本仓库托管
-8. 若最终仍只有单 compose 或 Docker 资产未收敛到标准目标，则直接视为未完成
-9. 未经 Discovery 或用户确认，不得发明新的服务别名或聚合组，例如 `stack`
+8. 将部署与构建所需变量统一收敛到 `docker/.env.example` / `docker/.env`
+9. 若最终仍只有单 compose 或 Docker 资产未收敛到标准目标，则直接视为未完成
+10. 未经 Discovery 或用户确认，不得发明新的服务别名或聚合组，例如 `stack`
 
 ## 双 compose 规则
 
@@ -82,12 +89,30 @@
 - 解析参数，空参默认 `all`
 - 参数口径必须与 `scripts/dev.sh` 完全一致，并复用同一份服务映射
 - 校验 Docker 与 Compose 是否可用
-- 读取 deploy/orchestration 专用 env 契约（如 `docker/deploy.env`）以及对应 app 的 `.env.prod`
+- 只读取 `docker/.env`
 - 根据服务集合选择 app compose 中的目标服务
 - 判断 infra 是否需要联动
 - 触发 `docker compose build`
 - 触发 `docker compose up -d`
 - 输出本次构建和部署的服务集合
+
+如果 `docker/.env` 缺失，脚本必须明确输出：
+
+```bash
+✗ Missing env file: docker/.env
+  Expected template: docker/.env.example
+  Run: cp docker/.env.example docker/.env
+```
+
+## 单一 env 规则
+
+部署阶段的 env 契约必须满足：
+
+- `docker/.env.example` 是唯一模板
+- `docker/.env` 是唯一运行时 env
+- Compose、Docker build、`scripts/deploy.sh` 全部围绕 `docker/.env` 工作
+- 自动生成的 env key 必须使用全大写蛇形命名
+- 不再生成或依赖任何分散的多环境 env 文件
 
 ## Docker 化原则
 
@@ -122,9 +147,10 @@
 - 本次实际部署了哪些 app 服务
 - 本次使用了哪些真实服务名或聚合组参数
 - 是否联动了 `docker/infra.compose.yml`
-- 是否使用了 deploy/orchestration 专用 env 契约
+- 使用了哪个 env 文件（必须是 `docker/.env`）
+- 缺失 env 时应该执行的复制命令
 - 使用了哪些 Dockerfile
-- 哪些旧 deploy / docker 资产被 migrate / merge / delete
+- 哪些旧 deploy / docker / env 资产被 migrate / merge / delete
 - 执行了哪些 `docker compose build` / `docker compose up -d` 动作
 - 哪个 readiness 信号证明部署成功
 
@@ -134,5 +160,6 @@
 - 依赖宿主机语言运行时来完成构建
 - `scripts/deploy.sh` 和 `scripts/dev.sh` 使用不同的服务分组口径
 - 最终仍保留单个 `docker-compose.yml` 作为唯一标准部署资产
+- 继续生成或依赖任何分散的多环境 env 文件
 - 在未确认的情况下发明 `stack`、`mobile` 等新别名并暴露给用户
 - 发现已有 Dockerfile 或旧 compose 不规范，就直接忽略而不是说明如何收敛

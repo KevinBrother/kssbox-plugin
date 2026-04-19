@@ -2,13 +2,12 @@
 
 ## 目标
 
-把目标项目现有的启动方式统一收敛为一个入口：`scripts/dev.sh [service...]`，并在统一入口下治理旧 dev 资产、联动基础设施、按 app 选择环境变量，最终确认目标服务已经启动成功。
+把目标项目现有的启动方式统一收敛为一个入口：`scripts/dev.sh [service...]`，并在统一入口下治理旧 dev 资产、联动基础设施、统一加载 `docker/.env`，最终确认目标服务已经启动成功。
 
 ## 必须输出的资产
 
 - `scripts/dev.sh`
-- 各 app 自己的 `.env.dev.example`
-- 各 app 自己的 `.env.local.example`（如该 app 需要本地私有覆盖）
+- `docker/.env.example`
 - 必要时补充本地开发说明
 
 ## 统一入口约定
@@ -43,8 +42,8 @@
 4. 若 infra 缺失，优先联动 `docker/infra.compose.yml`
 5. 为每个 app 选择正确的启动命令
 6. 对复杂项目允许内部按 app 级执行，但外部接口应优先保持真实服务名
-7. 启动前按 app 加载运行时环境变量
-8. 若最终仍依赖中心化 env 或无法落成 app 自治 env，则直接视为未完成
+7. 启动前统一加载 `docker/.env`
+8. 若最终仍依赖 `.env.dev`、`.env.local`、app 内 `.env*` 或其他多 env 模型，则直接视为未完成
 
 ## 参数解析要求
 
@@ -54,25 +53,35 @@
 - 非法参数不能静默忽略，必须明确报错
 - `dev.sh` 与 `deploy.sh` 必须共用同一份服务映射口径
 
-## app 自治 env
+## 单一 docker env
 
-`scripts/dev.sh` 不再依赖中心化 `.env.example`，而是按 app 读取运行时环境。
+`scripts/dev.sh` 只允许依赖项目级单一 env 契约：
 
-每个 app 至少应具备：
-
-- `<app>/.env.dev.example`
-- `<app>/.env.local.example`（如需要）
+- `docker/.env.example`
+- `docker/.env`
 
 实际运行时：
 
-- `.env.dev`、`.env.local` 由开发者从 example copy 生成
-- 真实 `.env*` 不应提交到 git
+- 开发者先执行 `cp docker/.env.example docker/.env`
+- `scripts/dev.sh` 只读取 `docker/.env`
+- 真实 `docker/.env` 不应提交到 git
+- env key 必须统一使用全大写蛇形命名
 
-当一个 app 目录承载多个真实服务名时：
+如果 `docker/.env` 缺失，脚本必须明确输出：
 
-- 先复用该 app 的基础 env，例如 `frontend/.env.dev.example`
-- 若不同运行面确实需要差异变量，可在同目录追加 service overlay，例如 `frontend/.env.h5.dev.example`、`frontend/.env.weapp.dev.example`
-- 不要为了匹配服务名而把一个物理 app 人工拆成多个假目录
+```bash
+✗ Missing env file: docker/.env
+  Expected template: docker/.env.example
+  Run: cp docker/.env.example docker/.env
+```
+
+如果 `docker/.env` 存在但关键变量缺失，脚本必须继续明确输出：
+
+```bash
+✗ Missing required env keys: DATABASE_URL REDIS_URL
+```
+
+不允许因为一个物理 app 承载多个运行面，就重新引入 `frontend/.env.dev`、`.env.local` 或 service overlay。
 
 ## 复杂项目处理
 
@@ -105,15 +114,26 @@ groups.mobile    -> h5 + weapp
 - 本次使用了哪些真实服务名或聚合组参数
 - 哪些旧 dev 资产被 migrate / merge / delete
 - 是否联动了 `docker/infra.compose.yml`
+- 使用了哪个 env 文件（必须是 `docker/.env`）
+- 缺失 env 时应该执行的复制命令
 - 每个 app 使用了什么启动命令
-- 每个 app 选择了哪类 env 模式
+- 缺失的关键 env key（如有）
 - 哪个检测信号证明启动成功
+
+## 提前退出与 cleanup 安全
+
+`scripts/dev.sh` 的退出逻辑必须满足：
+
+- 在尚未启动任何子进程时失败，cleanup 不能访问未初始化的 PID 集合
+- 不允许出现 `PIDS[@]: unbound variable`
+- 只有实际启动过子进程，才输出 `Shutting down dev services...`
+- env 缺失或关键变量缺失时，脚本应直接报错退出，不再产生二次异常
 
 ## 禁止行为
 
 - 只生成 `scripts/dev.sh`，不治理旧 dev 入口
 - 遇到未知参数时默认按 `all` 执行
 - 为了统一入口而丢失已有 app 的关键启动参数
-- 继续依赖根级 `.env.example` 作为所有 app 的统一 env 入口
+- 继续生成或依赖 `.env.dev`、`.env.local`、app 内 `.env*` 或 service overlay
 - 把案例里的服务名或聚合组直接写死在脚本里，却不和 Discovery 结果同步
-- 一个 app 明明承载多个运行面，却在未记录映射关系时擅自复制多套 env 结构
+- env 缺失时只说“缺配置”，却不指出 `docker/.env` 路径和复制命令

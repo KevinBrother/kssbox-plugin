@@ -87,6 +87,7 @@ groups.mobile    -> h5 + weapp
 - 旧 `run.sh`、`start.sh`、`deploy.sh` 的服务语义，要回写到 `serviceGroups`
 - `convergencePlan` 中的 keep / migrate / merge / delete，必须复用这套映射口径
 - 不允许旧脚本按一套服务语义，新入口按另一套语义
+- 服务映射只决定目标服务集合，不得隐含生成按 app 分散的 env；运行时配置统一收敛到 `docker/.env.example` / `docker/.env`
 
 ## 复杂项目处理
 
