@@ -84,13 +84,15 @@ skill 需要显式盘点以下资产：
 逻辑上，Discovery 阶段的输出应扩展为：
 
 ```text
-apps[]
-serviceGroups{all,biz,boss}
-existingArtifacts
-assetInventory[]
-convergencePlan[]
-toolchains
-assumptions
+projectProfile{
+  apps[]
+  serviceGroups
+  existingArtifacts
+  assetInventory[]
+  convergencePlan[]
+  toolchains
+  assumptions[]
+}
 ```
 
 其中：
